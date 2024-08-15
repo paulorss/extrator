@@ -44,7 +44,7 @@ def cortar_texto(linhas, cortes):
 
 def main():
     st.set_page_config(page_title="Extrator de Texto de PDF", layout="wide")
-    st.title("Extrator de Texto Matrículas")
+    st.title("Extrator de Texto de PDF com Múltiplos Cortes")
     
     if 'linhas' not in st.session_state:
         st.session_state.linhas = []
@@ -74,9 +74,8 @@ def main():
                 with st.expander(f"Trecho {i+1}", expanded=True):
                     inicio = st.number_input(f"Índice da linha inicial", min_value=0, max_value=len(st.session_state.linhas)-1, key=f"inicio_{i}", value=st.session_state.cortes[i][0] if i < len(st.session_state.cortes) else 0)
                     
-                    # Calculando o valor padrão para o fim
                     fim_default = st.session_state.cortes[i][1] if i < len(st.session_state.cortes) else min(inicio+10, len(st.session_state.linhas))
-                    fim_default = max(fim_default, inicio + 1)  # Garante que fim_default é sempre maior que inicio
+                    fim_default = max(fim_default, inicio + 1)
                     
                     fim = st.number_input(f"Índice da linha final", min_value=inicio+1, max_value=len(st.session_state.linhas), key=f"fim_{i}", value=fim_default)
                     novo_cortes.append((inicio, fim))
@@ -87,8 +86,11 @@ def main():
                 texto_cortado = cortar_texto(st.session_state.linhas, st.session_state.cortes)
                 for i, trecho in enumerate(texto_cortado):
                     with st.expander(f"Trecho {i+1}", expanded=True):
-                        st.text_area("Texto cortado:", value="\n".join(trecho), height=150)
+                        # Removendo quebras de linha e juntando o texto
+                        texto_sem_quebras = ' '.join(linha.strip() for linha in trecho)
+                        st.text_area("Texto cortado:", value=texto_sem_quebras, height=150)
                 
+                # Preparando o texto para download (mantendo as quebras de linha aqui)
                 texto_para_download = "\n\n".join([f"Trecho {i+1}:\n" + "\n".join(trecho) for i, trecho in enumerate(texto_cortado)])
                 st.download_button(
                     label="Baixar trechos cortados",
